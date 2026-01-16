@@ -334,7 +334,7 @@ async function main() {
             console.log('⚠ Prettier not available, trying fallback...');
 
             // 方法 2: 简单格式化
-            prettified = prettifySimple(code);
+            prettified = await prettifySimple(code);
             console.log('✓ Using simple formatter');
         }
 
