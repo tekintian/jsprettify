@@ -8,20 +8,14 @@
   },
   "scripts": {
     "prettify": "node src/index.js",
-    "build": "pkg ./src/index.js --targets node18-macos-x64 --output dist/jsprettify",
-    "build:all": "bash build.sh"
+    "bundle": "webpack --mode=production",
+    "build": "bash build.sh"
   },
   "dependencies": {
     "prettier": "^2.8.8"
   },
   "devDependencies": {
-    "pkg": "^5.8.1"
-  },
-  "pkg": {
-    "outputPath": "dist",
-    "assets": [
-      "node_modules/prettier/**/*"
-    ]
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4"
   }
-  
 }

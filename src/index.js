@@ -55,11 +55,14 @@ async function main() {
     const args = process.argv.slice(2);
 
     if (args.length < 1) {
-        console.log('Usage: node src/index.js <input.js> [output.js]');
+        console.log('Usage: jsprettify <input.js> [output.js]');
         console.log('');
         console.log('Examples:');
-        console.log('  node src/index.js test.min.js bg_prettified.js');
-        console.log('  node src/index.js ct.min.js ct_prettified.js');
+        console.log('  jsprettify test.min.js bg_prettified.js');
+        console.log('  jsprettify ct.min.js ct_prettified.js');
+        console.log('');
+        console.log('Note: If running with Node.js directly, use:');
+        console.log('  node src/index.js <input.js> [output.js]');
         process.exit(1);
     }
 

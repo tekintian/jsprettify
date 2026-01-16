@@ -1,46 +1,134 @@
 #!/bin/bash
 
-# JSPrettify 构建脚本
+# JSPrettify 构建脚本 - 使用 Node.js v24+ 官方单可执行应用方案
 
-echo "🔨 开始打包 JSPrettify..."
+set -e
 
-# 检查是否安装了 pkg
-if ! command -v pkg &> /dev/null; then
-    echo "❌ pkg 未安装，正在安装..."
-    npm install -g pkg
+echo "🔨 开始打包 JSPrettify (Node.js SEA)..."
+
+# 检查 Node.js 版本
+NODE_VERSION=$(node -v | cut -d'v' -f2 | cut -d'.' -f1)
+if [ "$NODE_VERSION" -lt 24 ]; then
+    echo "❌ Node.js v24+ 需要. 当前版本: $(node -v)"
+    exit 1
 fi
 
+# 清理并创建 dist 目录
 rm -rf dist
-# 创建 dist 目录
 mkdir -p dist
 
-# macOS ARM64 (Apple Silicon M1/M2/M3)
-echo "📦 打包 macOS ARM64..."
-pkg src/index.js --public --publicPackages '*' --targets node18-macos-arm64 --output dist/jsprettify-macos-arm64
+# 安装依赖
+echo "📦 安装依赖..."
+npm install
 
-# macOS x64 (Intel)
-echo "📦 打包 macOS x64..."
-pkg src/index.js --public --publicPackages '*' --targets node18-macos-x64 --output dist/jsprettify-macos-x64
+# 打包 JavaScript 代码（包含所有依赖）
+echo "📦 打包 JavaScript..."
+if ! command -v webpack &> /dev/null; then
+    echo "安装 webpack..."
+    npm install -g webpack webpack-cli
+fi
+npm run bundle
 
-# Linux
-echo "📦 打包 Linux..."
-pkg src/index.js --public --publicPackages '*' --targets node18-linux-x64 --output dist/jsprettify-linux-x64
+# 创建 SEA 配置文件
+cat > sea-config.json << EOF
+{
+  "main": "dist/bundle.js",
+  "output": "dist/sea-prep.blob",
+  "disableExperimentalSEAWarning": true
+}
+EOF
 
-# Windows
-echo "📦 打包 Windows..."
-pkg src/index.js --public --publicPackages '*' --targets node18-win-x64 --output dist/jsprettify-win-x64.exe
+# 生成 blob 文件
+echo "🔧 生成 SEA blob..."
+node --experimental-sea-config sea-config.json
+
+# 平台构建函数
+build_platform() {
+    local PLATFORM=$1
+    local OUTPUT_NAME=$2
+    local EXTENSION=$3
+    local IS_WINDOWS=$4
+    
+    echo ""
+    echo "📦 构建 $PLATFORM..."
+    
+    # 复制 node 二进制
+    if [ "$IS_WINDOWS" = "true" ]; then
+        node -e "require('fs').copyFileSync(process.execPath, 'dist/${OUTPUT_NAME}${EXTENSION}')"
+    else
+        cp $(command -v node) "dist/${OUTPUT_NAME}${EXTENSION}"
+    fi
+    
+    # 移除签名（macOS 和 Windows）
+    if [[ "$PLATFORM" == *"macOS"* ]]; then
+        codesign --remove-signature "dist/${OUTPUT_NAME}${EXTENSION}" 2>/dev/null || true
+    fi
+    
+    # 注入 blob
+    echo "  注入 blob..."
+    if [[ "$PLATFORM" == *"macOS"* ]]; then
+        npx postject "dist/${OUTPUT_NAME}${EXTENSION}" NODE_SEA_BLOB dist/sea-prep.blob \
+            --sentinel-fuse NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2 \
+            --macho-segment-name NODE_SEA --overwrite
+    elif [ "$IS_WINDOWS" = "true" ]; then
+        npx postject "dist/${OUTPUT_NAME}${EXTENSION}" NODE_SEA_BLOB dist/sea-prep.blob \
+            --sentinel-fuse NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2 --overwrite
+    else
+        npx postject "dist/${OUTPUT_NAME}${EXTENSION}" NODE_SEA_BLOB dist/sea-prep.blob \
+            --sentinel-fuse NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2 --overwrite
+    fi
+    
+    # 重新签名（macOS）
+    if [[ "$PLATFORM" == *"macOS"* ]]; then
+        codesign --sign - "dist/${OUTPUT_NAME}${EXTENSION}" 2>/dev/null || true
+    fi
+    
+    # 设置可执行权限（非 Windows）
+    if [ "$IS_WINDOWS" != "true" ]; then
+        chmod +x "dist/${OUTPUT_NAME}${EXTENSION}"
+    fi
+    
+    echo "  ✅ $PLATFORM 构建完成"
+}
+
+# 构建所有平台
+echo ""
+echo "========================================="
+echo "开始构建各平台版本..."
+echo "========================================="
+
+# macOS ARM64 (当前机器架构)
+if [[ "$OSTYPE" == "darwin"* ]] && [[ $(uname -m) == "arm64" ]]; then
+    build_platform "macOS ARM64" "jsprettify-macos-arm64" "" "false"
+fi
+
+# macOS x64 (当前机器架构)
+if [[ "$OSTYPE" == "darwin"* ]] && [[ $(uname -m) == "x86_64" ]]; then
+    build_platform "macOS x64" "jsprettify-macos-x64" "" "false"
+fi
+
+# Linux (当前机器架构)
+if [[ "$OSTYPE" == "linux"* ]]; then
+    build_platform "Linux" "jsprettify-linux-$(uname -m)" "" "false"
+fi
+
+# Windows (交叉构建需要在 Windows 上运行)
+echo ""
+echo "⚠️  Windows 版本需要在 Windows 系统上构建"
 
 echo ""
 echo "========================================="
-echo "✅ 所有平台打包完成！可执行文件在 dist/ 目录下"
+echo "✅ 构建完成！可执行文件在 dist/ 目录下"
 echo "========================================="
 echo ""
 echo "文件列表:"
 ls -lh dist/
 echo ""
 echo "🚀 使用方法:"
-echo "  macOS ARM64:  ./dist/jsprettify-macos-arm64 input.min.js [output.js]"
-echo "  macOS x64:    ./dist/jsprettify-macos-x64 input.min.js [output.js]"
-echo "  Linux:        ./dist/jsprettify-linux-x64 input.min.js [output.js]"
-echo "  Windows:      dist\\jsprettify-win-x64.exe input.min.js [output.js]"
+echo "  ./dist/jsprettify-<platform> input.min.js [output.js]"
+echo ""
+echo "💡 提示:"
+echo "  - 每个平台的可执行文件只能在该平台运行"
+echo "  - 要构建 Windows 版本，请在 Windows 上运行此脚本"
+echo "  - 要构建其他架构，请在相应架构的机器上运行"
 echo ""

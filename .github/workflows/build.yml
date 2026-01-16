@@ -22,27 +22,27 @@ jobs:
           # macOS ARM64 (Apple Silicon M1/M2/M3)
           - os: macos-15
             platform: macos-arm64
-            target: node18-macos-arm64
             ext: ''
             arch: arm64
+            is_windows: false
           # macOS x64 (Intel)
-          - os: macos-15-intel
+          - os: macos-15-large
             platform: macos-x64
-            target: node18-macos-x64
             ext: ''
             arch: x64
+            is_windows: false
           # Linux x64
           - os: ubuntu-latest
             platform: linux-x64
-            target: node18-linux-x64
             ext: ''
             arch: x64
+            is_windows: false
           # Windows x64
           - os: windows-latest
             platform: win-x64
-            target: node18-win-x64
             ext: '.exe'
             arch: x64
+            is_windows: true
 
     runs-on: ${{ matrix.os }}
 
@@ -53,33 +53,84 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '24'
 
       - name: Install dependencies
         run: npm install
 
-      - name: Install pkg
-        run: npm install -g pkg
+      - name: Install postject
+        run: npm install -g postject
 
       - name: Show system architecture
         run: |
           echo "OS: ${{ matrix.os }}"
           echo "Platform: ${{ matrix.platform }}"
-          echo "Target: ${{ matrix.target }}"
           echo "Architecture: ${{ matrix.arch }}"
-          uname -m
-
-      - name: Build jsprettify
+          if [[ "${{ matrix.os }}" != "windows-latest" ]]; then
+            uname -m
+          fi
         shell: bash
-        run: pkg src/index.js --public --publicPackages '*' --targets ${{ matrix.target }} --output dist/jsprettify-${{ matrix.platform }}${{ matrix.ext }}
 
-      - name: Make executables executable (Unix)
-        if: matrix.os != 'windows-latest'
-        run: chmod +x dist/*
+      - name: Bundle JavaScript
+        run: |
+          if ! command -v webpack &> /dev/null; then
+            npm install -g webpack webpack-cli
+          fi
+          npm run bundle
+
+      - name: Create SEA config
+        run: |
+          cat > sea-config.json << 'EOF'
+          {
+            "main": "dist/bundle.js",
+            "output": "sea-prep.blob",
+            "disableExperimentalSEAWarning": true
+          }
+          EOF
+
+      - name: Generate SEA blob
+        run: node --experimental-sea-config sea-config.json
+
+      - name: Copy Node.js binary
+        run: |
+          if [[ "${{ matrix.is_windows }}" == "true" ]]; then
+            node -e "require('fs').copyFileSync(process.execPath, 'dist/jsprettify-${{ matrix.platform }}${{ matrix.ext }}')"
+          else
+            cp $(command -v node) dist/jsprettify-${{ matrix.platform }}${{ matrix.ext }}
+          fi
+        shell: bash
+
+      - name: Remove signature (macOS)
+        if: startsWith(matrix.os, 'macos')
+        run: codesign --remove-signature dist/jsprettify-${{ matrix.platform }}${{ matrix.ext }}
+
+      - name: Inject blob (Unix)
+        if: matrix.is_windows == false
+        run: |
+          if [[ "${{ matrix.os }}" == macos-* ]]; then
+            npx postject dist/jsprettify-${{ matrix.platform }}${{ matrix.ext }} NODE_SEA_BLOB sea-prep.blob \
+              --sentinel-fuse NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2 \
+              --macho-segment-name NODE_SEA --overwrite
+          else
+            npx postject dist/jsprettify-${{ matrix.platform }}${{ matrix.ext }} NODE_SEA_BLOB sea-prep.blob \
+              --sentinel-fuse NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2 --overwrite
+          fi
+
+      - name: Inject blob (Windows)
+        if: matrix.is_windows == true
+        run: npx postject dist/jsprettify-${{ matrix.platform }}${{ matrix.ext }} NODE_SEA_BLOB sea-prep.blob --sentinel-fuse NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2 --overwrite
+
+      - name: Resign binary (macOS)
+        if: startsWith(matrix.os, 'macos')
+        run: codesign --sign - dist/jsprettify-${{ matrix.platform }}${{ matrix.ext }}
+
+      - name: Make executable (Unix)
+        if: matrix.is_windows == false
+        run: chmod +x dist/jsprettify-${{ matrix.platform }}${{ matrix.ext }}
 
       - name: Display built files
-        shell: bash
         run: ls -lh dist/
+        shell: bash
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -164,7 +215,10 @@ jobs:
           prerelease: false
           generate_release_notes: true
           fail_on_unmatched_files: false
-          files: release/**
+          files: |
+            release/*.tar.gz
+            release/*.zip
+            release/*.txt
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -175,7 +229,7 @@ jobs:
           echo "| File | Size |" >> $GITHUB_STEP_SUMMARY
           echo "|------|------|" >> $GITHUB_STEP_SUMMARY
           cd release
-          for file in jsprettify-*.tar.gz jsprettify-*.zip jsprettify-* checksums.txt sha256sums.txt; do
+          for file in jsprettify-*.tar.gz jsprettify-*.zip checksums.txt sha256sums.txt; do
             if [ -f "$file" ]; then
               size=$(ls -lh "$file" | awk '{print $5}')
               echo "| $file | $size |" >> $GITHUB_STEP_SUMMARY
