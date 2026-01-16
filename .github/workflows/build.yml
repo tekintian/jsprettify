@@ -55,17 +55,8 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Install dependencies (Lite)
-        if: matrix.os != 'windows-latest'
-        run: |
-          npm install --no-optional
-          npm install chrome-remote-interface
-
-      - name: Install dependencies (Windows)
-        if: matrix.os == 'windows-latest'
-        run: |
-          npm install --no-optional
-          npm install chrome-remote-interface
+      - name: Install dependencies
+        run: npm install
 
       - name: Install pkg
         run: npm install -g pkg
@@ -78,13 +69,9 @@ jobs:
           echo "Architecture: ${{ matrix.arch }}"
           uname -m
 
-      - name: Build Lite version
+      - name: Build jsprettify
         shell: bash
-        run: pkg index-lite.js --no-bytecode --public --publicPackages '*' --targets ${{ matrix.target }} --output dist/jsprettify-lite-${{ matrix.platform }}${{ matrix.ext }}
-
-      - name: Build Full version
-        shell: bash
-        run: pkg index-full.js --no-bytecode --public --publicPackages '*' --targets ${{ matrix.target }} --output dist/jsprettify-full-${{ matrix.platform }}${{ matrix.ext }}
+        run: pkg index.js --no-bytecode --public --publicPackages '*' --targets ${{ matrix.target }} --output dist/jsprettify-${{ matrix.platform }}${{ matrix.ext }}
 
       - name: Make executables executable (Unix)
         if: matrix.os != 'windows-latest'
@@ -98,9 +85,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: jsprettify-${{ matrix.platform }}
-          path: |
-            dist/jsprettify-lite-${{ matrix.platform }}${{ matrix.ext }}
-            dist/jsprettify-full-${{ matrix.platform }}${{ matrix.ext }}
+          path: dist/jsprettify-${{ matrix.platform }}${{ matrix.ext }}
           retention-days: 30
 
   release:
@@ -142,10 +127,10 @@ jobs:
       - name: Zip artifacts
         run: |
           cd release
-          tar -czf jsprettify-linux-x64.tar.gz jsprettify-lite-linux-x64 jsprettify-full-linux-x64
-          tar -czf jsprettify-macos-arm64.tar.gz jsprettify-lite-macos-arm64 jsprettify-full-macos-arm64
-          tar -czf jsprettify-macos-x64.tar.gz jsprettify-lite-macos-x64 jsprettify-full-macos-x64
-          zip -r jsprettify-win-x64.zip jsprettify-lite-win-x64.exe jsprettify-full-win-x64.exe
+          tar -czf jsprettify-linux-x64.tar.gz jsprettify-linux-x64
+          tar -czf jsprettify-macos-arm64.tar.gz jsprettify-macos-arm64
+          tar -czf jsprettify-macos-x64.tar.gz jsprettify-macos-x64
+          zip -r jsprettify-win-x64.zip jsprettify-win-x64.exe
 
       - name: Get version
         id: get_version
@@ -169,8 +154,7 @@ jobs:
           files: |
             release/jsprettify-*.tar.gz
             release/jsprettify-*.zip
-            release/jsprettify-lite-*
-            release/jsprettify-full-*
+            release/jsprettify-*
             release/checksums.txt
             release/sha256sums.txt
         env:
@@ -183,7 +167,7 @@ jobs:
           echo "| File | Size |" >> $GITHUB_STEP_SUMMARY
           echo "|------|------|" >> $GITHUB_STEP_SUMMARY
           cd release
-          for file in jsprettify-*.tar.gz jsprettify-*.zip jsprettify-lite-* jsprettify-full-* checksums.txt sha256sums.txt; do
+          for file in jsprettify-*.tar.gz jsprettify-*.zip jsprettify-* checksums.txt sha256sums.txt; do
             if [ -f "$file" ]; then
               size=$(ls -lh "$file" | awk '{print $5}')
               echo "| $file | $size |" >> $GITHUB_STEP_SUMMARY
