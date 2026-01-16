@@ -55,8 +55,17 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Install dependencies
-        run: npm install
+      - name: Install dependencies (Lite)
+        if: matrix.os != 'windows-latest'
+        run: |
+          npm install --no-optional
+          npm install chrome-remote-interface
+
+      - name: Install dependencies (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          npm install --no-optional
+          npm install chrome-remote-interface
 
       - name: Install pkg
         run: npm install -g pkg
@@ -70,15 +79,12 @@ jobs:
           uname -m
 
       - name: Build Lite version
-        run: pkg index-lite.js --no-bytecode --public --targets ${{ matrix.target }} --output dist/jsprettify-lite-${{ matrix.platform }}${{ matrix.ext }}
+        shell: bash
+        run: pkg index-lite.js --no-bytecode --public --publicPackages '*' --targets ${{ matrix.target }} --output dist/jsprettify-lite-${{ matrix.platform }}${{ matrix.ext }}
 
-      - name: Build Full version (Unix)
-        if: matrix.os != 'windows-latest'
-        run: pkg index-full.js --targets ${{ matrix.target }} --output dist/jsprettify-full-${{ matrix.platform }}${{ matrix.ext }}
-
-      - name: Build Full version (Windows)
-        if: matrix.os == 'windows-latest'
-        run: pkg index-full.js --targets ${{ matrix.target }} --output dist/jsprettify-full-${{ matrix.platform }}${{ matrix.ext }}
+      - name: Build Full version
+        shell: bash
+        run: pkg index-full.js --no-bytecode --public --publicPackages '*' --targets ${{ matrix.target }} --output dist/jsprettify-full-${{ matrix.platform }}${{ matrix.ext }}
 
       - name: Make executables executable (Unix)
         if: matrix.os != 'windows-latest'
