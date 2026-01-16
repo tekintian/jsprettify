@@ -7,10 +7,11 @@ set -e
 echo "🔨 构建最小体积版本 JSPrettify..."
 echo "=========================================="
 
-# 检查 Node.js 版本
+# 检查 Node.js 版本（v20+ 支持 SEA）
 NODE_VERSION=$(node -v | cut -d'v' -f2 | cut -d'.' -f1)
 if [ "$NODE_VERSION" -lt 20 ]; then
     echo "❌ Node.js v20+ 需要. 当前版本: $(node -v)"
+    echo "   Node.js SEA 功能在 v18.16.0+、v19.7.0+、v20.x+ 中可用"
     exit 1
 fi
 

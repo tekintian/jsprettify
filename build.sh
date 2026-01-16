@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# JSPrettify 构建脚本 - 使用 Node.js v24+ 官方单可执行应用方案
+# JSPrettify 构建脚本 - 使用 Node.js v20+ 官方单可执行应用方案
 
 set -e
 
@@ -8,8 +8,9 @@ echo "🔨 开始打包 JSPrettify (Node.js SEA)..."
 
 # 检查 Node.js 版本
 NODE_VERSION=$(node -v | cut -d'v' -f2 | cut -d'.' -f1)
-if [ "$NODE_VERSION" -lt 24 ]; then
-    echo "❌ Node.js v24+ 需要. 当前版本: $(node -v)"
+if [ "$NODE_VERSION" -lt 20 ]; then
+    echo "❌ Node.js v20+ 需要. 当前版本: $(node -v)"
+    echo "   Node.js SEA 功能在 v18.16.0+、v19.7.0+、v20.x+ 中可用"
     exit 1
 fi
 
