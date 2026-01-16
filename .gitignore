@@ -37,3 +37,4 @@ yarn-error.log*
 *.tmp
 *.temp
 test-lite.js
+/test

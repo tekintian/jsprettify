@@ -9,7 +9,7 @@ on:
       create_release:
         description: 'Create GitHub Release'
         required: true
-        default: 'true'
+        default: true
         type: boolean
 
 jobs:
@@ -18,13 +18,13 @@ jobs:
       matrix:
         include:
           # macOS ARM64 (Apple Silicon M1/M2/M3)
-          - os: macos-latest
+          - os: macos-15
             platform: macos-arm64
             target: node18-macos-arm64
             ext: ''
             arch: arm64
           # macOS x64 (Intel)
-          - os: macos-13
+          - os: macos-15-intel
             platform: macos-x64
             target: node18-macos-x64
             ext: ''
