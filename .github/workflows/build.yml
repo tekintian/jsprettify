@@ -144,14 +144,6 @@ jobs:
           echo "Created archives:"
           ls -la *.tar.gz *.zip 2>/dev/null || echo "No archives created"
 
-      - name: Zip artifacts
-        run: |
-          cd release
-          tar -czf jsprettify-linux-x64.tar.gz jsprettify-linux-x64
-          tar -czf jsprettify-macos-arm64.tar.gz jsprettify-macos-arm64
-          tar -czf jsprettify-macos-x64.tar.gz jsprettify-macos-x64
-          zip -r jsprettify-win-x64.zip jsprettify-win-x64.exe
-
       - name: Get version
         id: get_version
         run: |
@@ -171,12 +163,8 @@ jobs:
           draft: false
           prerelease: false
           generate_release_notes: true
-          files: |
-            release/jsprettify-*.tar.gz
-            release/jsprettify-*.zip
-            release/jsprettify-*
-            release/checksums.txt
-            release/sha256sums.txt
+          fail_on_unmatched_files: false
+          files: release/**
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

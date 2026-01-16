@@ -239,7 +239,7 @@ bash t.sh
 
 - [Prettier 官方文档](https://prettier.io/docs/en/)
 - [Babel Parser](https://babeljs.io/docs/en/babel-parser)
-- [pkg 文档](https://github.com/vercel/pkg#readme)
+- [专业软件定制开发](https://dev.tekin.cn)
 
 ## 💡 常见问题
 
@@ -260,7 +260,9 @@ A: 支持 ES5、ES6/ES2015 及更新的 JavaScript 版本，包括 async/await�
 如有问题或建议，请通过以下方式联系：
 
 - 提交 [GitHub Issue](https://github.com/tekintian/jsprettify/issues)
-- 发送邮件至：your-email@example.com
+- 发送邮件至：tekintian@gmail.com
+- 微信：tekintian 
+- QQ: 932256355
 
 ---
 
