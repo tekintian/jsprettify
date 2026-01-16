@@ -15,19 +15,19 @@ mkdir -p dist
 
 # macOS ARM64 (Apple Silicon M1/M2/M3)
 echo "📦 打包 macOS ARM64..."
-pkg index.js --no-bytecode --public --publicPackages '*' --targets node18-macos-arm64 --output dist/jsprettify-macos-arm64
+pkg index.js --public --publicPackages '*' --targets node18-macos-arm64 --output dist/jsprettify-macos-arm64
 
 # macOS x64 (Intel)
 echo "📦 打包 macOS x64..."
-pkg index.js --no-bytecode --public --publicPackages '*' --targets node18-macos-x64 --output dist/jsprettify-macos-x64
+pkg index.js --public --publicPackages '*' --targets node18-macos-x64 --output dist/jsprettify-macos-x64
 
 # Linux
 echo "📦 打包 Linux..."
-pkg index.js --no-bytecode --public --publicPackages '*' --targets node18-linux-x64 --output dist/jsprettify-linux-x64
+pkg index.js --public --publicPackages '*' --targets node18-linux-x64 --output dist/jsprettify-linux-x64
 
 # Windows
 echo "📦 打包 Windows..."
-pkg index.js --no-bytecode --public --publicPackages '*' --targets node18-win-x64 --output dist/jsprettify-win-x64.exe
+pkg index.js --public --publicPackages '*' --targets node18-win-x64 --output dist/jsprettify-win-x64.exe
 
 echo ""
 echo "========================================="
