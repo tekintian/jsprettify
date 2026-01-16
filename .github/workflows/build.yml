@@ -71,7 +71,7 @@ jobs:
 
       - name: Build jsprettify
         shell: bash
-        run: pkg index.js --public --publicPackages '*' --targets ${{ matrix.target }} --output dist/jsprettify-${{ matrix.platform }}${{ matrix.ext }}
+        run: pkg src/index.js --public --publicPackages '*' --targets ${{ matrix.target }} --output dist/jsprettify-${{ matrix.platform }}${{ matrix.ext }}
 
       - name: Make executables executable (Unix)
         if: matrix.os != 'windows-latest'

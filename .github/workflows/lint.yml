@@ -21,11 +21,9 @@ jobs:
 
       - name: Check syntax
         run: |
-          node --check index.js
-          node --check index-lite.js
-          node --check index-full.js
+          node --check src/index.js
 
       - name: Test files are executable
         run: |
-          chmod +x index.js index-lite.js index-full.js
+          chmod +x src/index.js
           echo "✅ All entry files are executable"

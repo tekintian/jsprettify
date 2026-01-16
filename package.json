@@ -1,35 +1,27 @@
 {
   "name": "jsprettify",
   "version": "1.0.0",
-  "description": "Prettify JavaScript code",
-  "main": "index.js",
+  "description": "Prettify and decompress your JavaScript code with jsprettify",
+  "main": "src/index.js",
   "bin": {
-    "jsprettify": "./index.js"
+    "jsprettify": "./src/index.js"
   },
   "scripts": {
-    "prettify": "node index.js",
-    "build": "pkg index.js --public --publicPackages '*' --targets node18-linux-x64,node18-win-x64,node18-macos-x64,node18-macos-arm64 --output dist/jsprettify",
+    "prettify": "node src/index.js",
+    "build": "pkg ./src/index.js --targets node18-macos-x64 --output dist/jsprettify",
     "build:all": "bash build.sh"
   },
   "dependencies": {
-    "prettier": "^3.8.0",
-    "chrome-remote-interface": "^0.33.0"
-  },
-  "optionalDependencies": {
-    "puppeteer-core": "^24.35.0"
+    "prettier": "^2.8.8"
   },
   "devDependencies": {
     "pkg": "^5.8.1"
   },
   "pkg": {
-    "scripts": "index.js",
-    "assets": [],
-    "targets": [
-      "node18-linux-x64",
-      "node18-win-x64",
-      "node18-macos-x64",
-      "node18-macos-arm64"
-    ],
-    "outputPath": "dist"
+    "outputPath": "dist",
+    "assets": [
+      "node_modules/prettier/**/*"
+    ]
   }
+  
 }
