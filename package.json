@@ -1,0 +1,41 @@
+{
+  "name": "jsprettify",
+  "version": "1.0.0",
+  "description": "Prettify JavaScript code",
+  "main": "index.js",
+  "bin": {
+    "jsprettify": "./index.js",
+    "jsprettify-lite": "./index-lite.js",
+    "jsprettify-full": "./index-full.js"
+  },
+  "scripts": {
+    "prettify": "node index.js",
+    "build:lite": "pkg index-lite.js --no-bytecode --public --targets node18-linux-x64,node18-win-x64,node18-macos-x64,node18-macos-arm64 --output dist/jsprettify-lite",
+    "build:full": "pkg index-full.js --assets chromedriver/**/* --targets node18-linux-x64,node18-win-x64,node18-macos-x64,node18-macos-arm64 --output dist/jsprettify-full",
+    "build": "npm run build:lite && npm run build:full",
+    "build:linux": "pkg index-lite.js index-full.js --targets node18-linux-x64 --output dist/jsprettify",
+    "build:win": "pkg index-lite.js index-full.js --targets node18-win-x64 --output dist/jsprettify",
+    "build:mac-arm64": "pkg index-lite.js index-full.js --targets node18-macos-arm64 --output dist/jsprettify",
+    "build:mac-x64": "pkg index-lite.js index-full.js --targets node18-macos-x64 --output dist/jsprettify",
+    "install:chromedriver": "npx @puppeteer/browsers install chromedriver@116.0.5793.0"
+  },
+  "dependencies": {
+    "prettier": "^3.8.0",
+    "puppeteer-core": "^24.35.0",
+    "chrome-remote-interface": "^0.33.0"
+  },
+  "devDependencies": {
+    "pkg": "^5.8.1"
+  },
+  "pkg": {
+    "scripts": "index.js",
+    "assets": [],
+    "targets": [
+      "node18-linux-x64",
+      "node18-win-x64",
+      "node18-macos-x64",
+      "node18-macos-arm64"
+    ],
+    "outputPath": "dist"
+  }
+}

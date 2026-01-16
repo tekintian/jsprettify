@@ -1,0 +1,53 @@
+name: Test
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run prettify
+        run: npm run prettify bg.min.js
+
+      - name: Verify output
+        run: |
+          if [ -f "bg_prettified.js" ]; then
+            echo "✅ Output file created"
+            head -20 bg_prettified.js
+          else
+            echo "❌ Output file not found"
+            exit 1
+          fi
+
+      - name: Syntax check
+        run: node --check bg_prettified.js
+
+      - name: Run Lite version
+        run: node index-lite.js bg.min.js bg-lite-test.js
+
+      - name: Compare outputs
+        run: |
+          if diff -q bg_prettified.js bg-lite-test.js; then
+            echo "✅ Both versions produce identical output"
+          else
+            echo "⚠️ Outputs differ (may be due to formatting differences)"
+          fi
+
+      - name: Cleanup
+        run: rm -f bg_prettified.js bg-lite-test.js

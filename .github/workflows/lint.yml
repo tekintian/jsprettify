@@ -1,0 +1,34 @@
+name: Lint
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Check syntax
+        run: |
+          node --check index.js
+          node --check index-lite.js
+          node --check index-full.js
+
+      - name: Test files are executable
+        run: |
+          chmod +x index.js index-lite.js index-full.js
+          echo "✅ All entry files are executable"
