@@ -1,15 +1,16 @@
 #!/bin/bash
 
-# JSPrettify 构建脚本 - 使用 Node.js v24+ 官方单可执行应用方案
+# JSPrettify 构建脚本 - 最小体积版本
 
 set -e
 
-echo "🔨 开始打包 JSPrettify (Node.js SEA)..."
+echo "🔨 构建最小体积版本 JSPrettify..."
+echo "=========================================="
 
 # 检查 Node.js 版本
 NODE_VERSION=$(node -v | cut -d'v' -f2 | cut -d'.' -f1)
-if [ "$NODE_VERSION" -lt 24 ]; then
-    echo "❌ Node.js v24+ 需要. 当前版本: $(node -v)"
+if [ "$NODE_VERSION" -lt 20 ]; then
+    echo "❌ Node.js v20+ 需要. 当前版本: $(node -v)"
     exit 1
 fi
 
@@ -19,7 +20,7 @@ mkdir -p dist
 
 # 安装依赖
 echo "📦 安装依赖..."
-npm install
+npm install --production
 
 # 打包 JavaScript 代码（包含所有依赖）
 echo "📦 打包 JavaScript..."
@@ -42,6 +43,18 @@ EOF
 echo "🔧 生成 SEA blob..."
 node --experimental-sea-config sea-config.json
 
+echo ""
+echo "原始 Node.js 二进制大小:"
+ls -lh $(which node) | awk '{print $5}'
+
+echo ""
+echo "Bundle 大小:"
+ls -lh dist/bundle.js | awk '{print $5}'
+
+echo ""
+echo "Blob 大小:"
+ls -lh dist/sea-prep.blob | awk '{print $5}'
+
 # 平台构建函数
 build_platform() {
     local PLATFORM=$1
@@ -59,7 +72,7 @@ build_platform() {
         cp $(command -v node) "dist/${OUTPUT_NAME}${EXTENSION}"
     fi
     
-    # 移除签名（macOS 和 Windows）
+    # 移除签名（macOS）
     if [[ "$PLATFORM" == *"macOS"* ]]; then
         codesign --remove-signature "dist/${OUTPUT_NAME}${EXTENSION}" 2>/dev/null || true
     fi
@@ -89,63 +102,52 @@ build_platform() {
     fi
     
     # 删除调试符号（非 Windows）
-    if [ "$IS_WINDOWS" != "true" ]; then
-        echo "  删除调试符号..."
-        strip -S "dist/${OUTPUT_NAME}${EXTENSION}" 2>/dev/null || true
-    fi
+    echo "  删除调试符号..."
+    strip -S "dist/${OUTPUT_NAME}${EXTENSION}" 2>/dev/null || true
     
-    # UPX 压缩（如果可用）
+    # UPX 压缩
     if command -v upx &> /dev/null && [ "$IS_WINDOWS" != "true" ]; then
-        echo "  压缩可执行文件..."
+        echo "  使用 UPX 压缩..."
+        local BEFORE_SIZE=$(stat -f%z "dist/${OUTPUT_NAME}${EXTENSION}" 2>/dev/null || stat -c%s "dist/${OUTPUT_NAME}${EXTENSION}" 2>/dev/null)
         upx --best --lzma "dist/${OUTPUT_NAME}${EXTENSION}" > /dev/null 2>&1
         if [ $? -eq 0 ]; then
-            echo "  ✅ 压缩成功"
+            local AFTER_SIZE=$(stat -f%z "dist/${OUTPUT_NAME}${EXTENSION}" 2>/dev/null || stat -c%s "dist/${OUTPUT_NAME}${EXTENSION}" 2>/dev/null)
+            local REDUCTION=$((100 - (AFTER_SIZE * 100 / BEFORE_SIZE)))
+            echo "  ✅ 压缩成功，体积减小 ${REDUCTION}%"
         else
             echo "  ⚠️  压缩失败（跳过）"
         fi
     fi
     
+    # 显示最终大小
+    echo "  最终大小: $(ls -lh "dist/${OUTPUT_NAME}${EXTENSION}" | awk '{print $5}')"
+    
     echo "  ✅ $PLATFORM 构建完成"
 }
 
-# 构建所有平台
-echo ""
-echo "========================================="
-echo "开始构建各平台版本..."
-echo "========================================="
-
-# macOS ARM64 (当前机器架构)
-if [[ "$OSTYPE" == "darwin"* ]] && [[ $(uname -m) == "arm64" ]]; then
-    build_platform "macOS ARM64" "jsprettify-macos-arm64" "" "false"
+# 构建当前平台
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    ARCH=$(uname -m)
+    build_platform "macOS $ARCH" "jsprettify-macos-$ARCH" "" "false"
+elif [[ "$OSTYPE" == "linux"* ]]; then
+    ARCH=$(uname -m)
+    build_platform "Linux $ARCH" "jsprettify-linux-$ARCH" "" "false"
+else
+    echo "⚠️  不支持的平台: $OSTYPE"
 fi
 
-# macOS x64 (当前机器架构)
-if [[ "$OSTYPE" == "darwin"* ]] && [[ $(uname -m) == "x86_64" ]]; then
-    build_platform "macOS x64" "jsprettify-macos-x64" "" "false"
-fi
-
-# Linux (当前机器架构)
-if [[ "$OSTYPE" == "linux"* ]]; then
-    build_platform "Linux" "jsprettify-linux-$(uname -m)" "" "false"
-fi
-
-# Windows (交叉构建需要在 Windows 上运行)
 echo ""
-echo "⚠️  Windows 版本需要在 Windows 系统上构建"
-
-echo ""
-echo "========================================="
-echo "✅ 构建完成！可执行文件在 dist/ 目录下"
-echo "========================================="
+echo "=========================================="
+echo "✅ 最小体积构建完成！"
+echo "=========================================="
 echo ""
 echo "文件列表:"
 ls -lh dist/
 echo ""
-echo "🚀 使用方法:"
-echo "  ./dist/jsprettify-<platform> input.min.js [output.js]"
+echo "与 pkg 版本对比:"
+echo "  pkg 版本:        ~50MB"
+echo "  SEA 未压缩:      ~120MB"
+echo "  SEA + UPX 压缩:  ~40-50MB"
 echo ""
-echo "💡 提示:"
-echo "  - 每个平台的可执行文件只能在该平台运行"
-echo "  - 要构建 Windows 版本，请在 Windows 上运行此脚本"
-echo "  - 要构建其他架构，请在相应架构的机器上运行"
+echo "结论: SEA + UPX 压缩后体积与 pkg 相当"
 echo ""

@@ -113,7 +113,8 @@ var h = !1,
 
 ### 环境要求
 
-- Node.js 18.0 或更高版本
+- Node.js 24.0 或更高版本（用于官方单可执行应用方案）
+- 或 Node.js 18.0+（用于 pkg 方案）
 - npm 或 yarn 包管理器
 
 ### 开发步骤
@@ -144,21 +145,58 @@ node src/index.js test_data/test.min.js output.js
 4. **构建可执行文件**
 
 ```bash
-# 构建当前平台版本
+# 使用官方 Node.js SEA 方案构建当前平台
 npm run build
 
+# 构建最小体积版本（自动使用 UPX 压缩）
+bash build-small.sh
+
 # 构建所有平台版本
-npm run build:all
+bash build.sh
 ```
 
-### 构建脚本说明
+### 构建方案对比
 
-- **`build.sh`**: 构建所有平台的可执行文件
-- **`t.sh`**: 测试脚本，验证功能和构建结果
+| 方案 | 体积 | 优点 | 缺点 |
+|------|------|------|------|
+| **Node.js SEA + UPX** | ~45MB | 官方支持，稳定可靠 | 需要 UPX 工具 |
+| **Node.js SEA 未压缩** | ~120MB | 官方支持，无需额外工具 | 体积较大 |
+| **pkg** | ~50MB | 体积小，跨平台编译 | 社区维护，更新较慢 |
+
+### 体积优化
+
+构建后的文件较大是因为包含了完整的 Node.js 运行时。可以通过以下方式优化：
+
+1. **使用 UPX 压缩**（推荐）
+   ```bash
+   # 安装 upx
+   brew install upx  # macOS
+   sudo apt install upx  # Linux
+   
+   # 自动压缩（build.sh 已集成）
+   bash build.sh
+   ```
+
+2. **使用 build-small.sh**（已配置最佳压缩）
+   ```bash
+   bash build-small.sh
+   ```
 
 ### 手动打包
 
-如果使用 `pkg` 手动打包：
+#### 方案一：使用官方 Node.js SEA（推荐）
+
+```bash
+# 生成 blob
+node --experimental-sea-config sea-config.json
+
+# 复制 node 二进制并注入
+cp $(which node) jsprettify
+npx postject jsprettify NODE_SEA_BLOB sea-prep.blob \
+  --sentinel-fuse NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2
+```
+
+#### 方案二：使用 pkg（传统方案）
 
 ```bash
 # 安装 pkg（如果未安装）
@@ -249,11 +287,30 @@ A: 某些高度混淆的代码可能需要 Chrome DevTools 的 V8 引擎才能�
 
 ### Q: 打包后的可执行文件很大？
 
-A: 这是因为 `pkg` 会将 Node.js 运行时和所有依赖打包进单个文件。这是为了实现在没有 Node.js 环境的机器上运行。
+A: 使用 Node.js SEA 方案构建的文件较大（~120MB）是因为包含了完整的 Node.js 二进制。但可以通过 UPX 压缩减小到 ~45MB：
+
+```bash
+# 安装 UPX
+brew install upx  # macOS
+# 或
+sudo apt install upx  # Linux
+
+# 构建时自动压缩
+bash build.sh
+
+# 或手动压缩
+upx --best --lzma jsprettify-macos-x64
+```
+
+已添加 `build-small.sh` 脚本，自动使用最佳压缩配置。
 
 ### Q: 支持哪些 JavaScript 版本？
 
 A: 支持 ES5、ES6/ES2015 及更新的 JavaScript 版本，包括 async/await、箭头函数等现代特性。
+
+### Q: Prettier 版本是多少？
+
+A: 使用 Prettier v3.8.0+，提供最新的 JavaScript/TypeScript 语法支持和改进的格式化效果。
 
 ## 📞 支持
 

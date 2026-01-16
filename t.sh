@@ -1,7 +1,7 @@
 
 
 # rm -rf node_modules package-lock.json dist/
-# # 2. 安装依赖（prettier 2.8.8 会被自动安装）
+# # 2. 安装依赖（prettier 3.8.0 会被自动安装）
 # npm install
 
 # # 3. 执行打包命令

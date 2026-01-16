@@ -1,4 +1,5 @@
 const path = require('path');
+const webpack = require('webpack');
 
 module.exports = {
   entry: './src/index.js',
@@ -8,10 +9,25 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
     filename: 'bundle.js',
   },
-  externals: {
-    // 将 prettier 打包进去，因为它是运行时必需的
+  optimization: {
+    minimize: true,
+    nodeEnv: 'production',
+    // 禁用代码分割，确保单个文件
+    splitChunks: false,
+    runtimeChunk: false,
   },
+  plugins: [
+    // 禁用动态导入，确保所有代码打包进单个文件
+    new webpack.optimize.LimitChunkCountPlugin({
+      maxChunks: 1,
+    }),
+  ],
   resolve: {
     extensions: ['.js', '.json'],
+  },
+  // 排除不必要的文件
+  node: {
+    __dirname: false,
+    __filename: false,
   },
 };

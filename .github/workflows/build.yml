@@ -3,7 +3,7 @@ name: Build and Release
 on:
   push:
     branches:
-      - main
+      - sea
     tags:
       - 'v*'
   workflow_dispatch:
@@ -61,6 +61,16 @@ jobs:
       - name: Install postject
         run: npm install -g postject
 
+      - name: Install UPX (Unix)
+        if: matrix.is_windows == false
+        run: |
+          if [[ "${{ matrix.os }}" == macos-* ]]; then
+            brew install upx
+          else
+            sudo apt-get update && sudo apt-get install -y upx
+          fi
+        shell: bash
+
       - name: Show system architecture
         run: |
           echo "OS: ${{ matrix.os }}"
@@ -69,6 +79,8 @@ jobs:
           if [[ "${{ matrix.os }}" != "windows-latest" ]]; then
             uname -m
           fi
+          echo "UPX version:"
+          upx --version 2>/dev/null || echo "UPX not available"
         shell: bash
 
       - name: Bundle JavaScript
@@ -127,6 +139,14 @@ jobs:
       - name: Make executable (Unix)
         if: matrix.is_windows == false
         run: chmod +x dist/jsprettify-${{ matrix.platform }}${{ matrix.ext }}
+
+      - name: Strip debug symbols (Unix)
+        if: matrix.is_windows == false
+        run: strip -S dist/jsprettify-${{ matrix.platform }}${{ matrix.ext }}
+
+      - name: Compress with UPX (Unix)
+        if: matrix.is_windows == false
+        run: upx --best --lzma dist/jsprettify-${{ matrix.platform }}${{ matrix.ext }}
 
       - name: Display built files
         run: ls -lh dist/

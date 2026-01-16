@@ -32,20 +32,18 @@ const prettier = require('prettier');
  * 使用 Prettier 格式化代码
  */
 async function prettifyWithPrettier(code) {
-    return new Promise((resolve, reject) => {
-        try {
-            const formattedCode = prettier.format(code, {
-                parser: 'babel',
-                semi: false,
-                singleQuote: false,
-                tabWidth: 4,
-                printWidth: 120
-            });
-            resolve(formattedCode);
-        } catch (e) {
-            reject(e);
-        }
-    });
+    try {
+        const formattedCode = await prettier.format(code, {
+            parser: 'babel',
+            semi: false,
+            singleQuote: false,
+            tabWidth: 4,
+            printWidth: 120
+        });
+        return formattedCode;
+    } catch (e) {
+        throw e;
+    }
 }
 
 /**

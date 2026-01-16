@@ -1,6 +1,6 @@
 {
   "name": "jsprettify",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Prettify and decompress your JavaScript code with jsprettify",
   "main": "src/index.js",
   "bin": {
@@ -9,13 +9,17 @@
   "scripts": {
     "prettify": "node src/index.js",
     "bundle": "webpack --mode=production",
-    "build": "bash build.sh"
+    "build": "bash build.sh",
+    "build:compress": "bash build.sh --compress"
   },
   "dependencies": {
-    "prettier": "^2.8.8"
+    "prettier": "^3.8.0"
   },
   "devDependencies": {
     "webpack": "^5.89.0",
     "webpack-cli": "^5.1.4"
+  },
+  "engines": {
+    "node": ">=16.0.0"
   }
 }
