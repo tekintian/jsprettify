@@ -23,31 +23,31 @@ jobs:
         run: npm install
 
       - name: Run prettify
-        run: npm run prettify bg.min.js
+        run: npm run prettify test_data/bg.min.js
 
       - name: Verify output
         run: |
-          if [ -f "bg_prettified.js" ]; then
+          if [ -f "test_data/bg_prettified.js" ]; then
             echo "✅ Output file created"
-            head -20 bg_prettified.js
+            head -20 test_data/bg_prettified.js
           else
             echo "❌ Output file not found"
             exit 1
           fi
 
       - name: Syntax check
-        run: node --check bg_prettified.js
+        run: node --check test_data/bg_prettified.js
 
       - name: Run Lite version
-        run: node index-lite.js bg.min.js bg-lite-test.js
+        run: node index-lite.js test_data/bg.min.js test_data/bg-lite-test.js
 
       - name: Compare outputs
         run: |
-          if diff -q bg_prettified.js bg-lite-test.js; then
+          if diff -q test_data/bg_prettified.js test_data/bg-lite-test.js; then
             echo "✅ Both versions produce identical output"
           else
             echo "⚠️ Outputs differ (may be due to formatting differences)"
           fi
 
       - name: Cleanup
-        run: rm -f bg_prettified.js bg-lite-test.js
+        run: rm -f test_data/bg_prettified.js test_data/bg-lite-test.js
