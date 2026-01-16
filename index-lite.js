@@ -54,7 +54,7 @@ function getChromePath() {
  * 使用 Prettier 格式化代码（备用）
  */
 async function prettifyWithPrettier(code) {
-    const prettier = require('prettier');
+    const { default: prettier } = await import('prettier');
     return prettier.format(code, {
         parser: 'babel',
         semi: false,

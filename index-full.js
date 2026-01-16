@@ -8,19 +8,23 @@
 
 const fs = require('fs');
 const path = require('path');
-const prettier = require('prettier');
 
 /**
  * 使用 Prettier 格式化代码
  */
 async function prettifyWithPrettier(code) {
-    return prettier.format(code, {
-        parser: 'babel',
-        semi: false,
-        singleQuote: false,
-        tabWidth: 4,
-        printWidth: 120
-    });
+    try {
+        const { default: prettier } = await import('prettier');
+        return prettier.format(code, {
+            parser: 'babel',
+            semi: false,
+            singleQuote: false,
+            tabWidth: 4,
+            printWidth: 120
+        });
+    } catch (e) {
+        throw new Error('Prettier format failed: ' + e.message);
+    }
 }
 
 /**
@@ -85,7 +89,8 @@ async function main() {
             prettified = await prettifyWithPrettier(code);
             console.log('✓ Using Prettier');
         } catch (e) {
-            console.log('⚠ Prettier failed, using fallback...');
+            console.log('⚠ Prettier failed:', e.message);
+            console.log('  Using simple formatter...');
             prettified = prettifySimple(code);
             console.log('✓ Using simple formatter');
         }
@@ -106,6 +111,7 @@ async function main() {
                 console.log('✓ Syntax check passed');
             } else {
                 console.log('⚠ Syntax check failed (but file written)');
+                console.log('  This may be due to special characters in the input file');
             }
         });
 
