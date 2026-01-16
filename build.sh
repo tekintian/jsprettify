@@ -20,7 +20,7 @@ pkg src/index.js --public --publicPackages '*' --targets node18-macos-arm64 --ou
 
 # macOS x64 (Intel)
 echo "📦 打包 macOS x64..."
-pkg src/index.js --public --publicPackages '*' --targets node18-macos-x64 --output dist/prettify-macos-x64
+pkg src/index.js --public --publicPackages '*' --targets node18-macos-x64 --output dist/jsprettify-macos-x64
 
 # Linux
 echo "📦 打包 Linux..."

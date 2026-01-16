@@ -10,7 +10,7 @@
 
 echo "🔨 开始测试 JSPrettify..."
 rm -rf dist && mkdir dist
-node index.js test_data/test.min.js dist/test0.js
+node src/index.js test_data/test.min.js dist/test0.js
 echo "done"
 echo "🔨 构建可执行文件..."
 rm -rf dist && mkdir dist
