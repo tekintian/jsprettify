@@ -35,14 +35,38 @@ jobs:
       if: runner.os != 'Windows'
       run: |
         chmod +x dist/jsprettify
-        node dist/jsprettify test_data/test.min.js output.js
+        ./dist/jsprettify test_data/test.min.js output.js
         [ -f output.js ] && echo "Build successful" || exit 1
 
-    - name: Test executable (Windows)
+    - name: Test executable (Windows)  
       if: runner.os == 'Windows'
       run: |
-        node dist/jsprettify test_data/test.min.js output.js
-        if (Test-Path output.js) { echo "Build successful" } else { exit 1 }
+        # 在 Windows 上，我们使用 node 直接运行编译后的文件
+        # 如果文件存在且可读，就尝试运行它
+        Get-ChildItem dist/
+        if (Test-Path "dist/jsprettify") {
+          Write-Host "jsprettify file exists"
+          # 尝试使用 node 运行它
+          node dist/jsprettify test_data/test.min.js output.js
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "Command executed successfully"
+          } else {
+            Write-Error "Command failed with exit code: $LASTEXITCODE"
+            exit 1
+          }
+        } else {
+          Write-Error "dist/jsprettify does not exist"
+          exit 1
+        }
+        
+        # 检查输出文件是否创建成功
+        if (Test-Path output.js) { 
+          Write-Host "Build successful" 
+        } else { 
+          Write-Error "Output file not created"
+          exit 1 
+        }
+      shell: pwsh
 
   release:
     needs: test
