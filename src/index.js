@@ -1,47 +1,77 @@
 #!/usr/bin/env node
 
+// 获取操作系统信息
+const os = require('os');
+
 // 检查Node.js版本
 function checkNodeVersion() {
-    const semver = require('semver');
+    // 尝试使用semver进行精确版本比较
+    let semver;
+    try {
+        semver = require('semver');
+    } catch (e) {
+        // 如果semver不可用，则使用简单比较
+        const versionMatch = process.version.match(/^v(\d+)\.(\d+)\.(\d+)/);
+        if (versionMatch) {
+            const major = parseInt(versionMatch[1], 10);
+            if (major < 14) {
+                showNodeInstallationInstructions(major);
+            }
+        }
+        return;
+    }
+    
     const requiredVersion = '14.0.0';
     
     if (!semver.gte(process.version, requiredVersion)) {
-        console.error(`❌ 错误: JSPrettify 需要 Node.js 版本 >= ${requiredVersion}`);
-        console.error(`❌ 当前版本: ${process.version}`);
-        console.error('');
-        console.error('💡 请安装或升级 Node.js:');
-        console.error('   macOS: brew install node 或访问 https://nodejs.org/');
-        console.error('   Ubuntu/Debian: sudo apt install nodejs npm');
-        console.error('   CentOS/RHEL: sudo yum install nodejs npm');
-        console.error('   Windows: 访问 https://nodejs.org/ 下载安装程序');
-        console.error('');
-        console.error('   推荐安装 LTS (长期支持) 版本');
-        process.exit(1);
+        showNodeInstallationInstructions(parseInt(process.version.match(/^v(\d+)/)[1]));
     }
+}
+
+// 显示Node.js安装说明
+function showNodeInstallationInstructions(currentMajorVersion) {
+    const platform = os.platform();
+    console.error(`❌ 错误: JSPrettify 需要 Node.js 版本 >= 14.0.0`);
+    console.error(`❌ 当前版本: ${process.version}`);
+    console.error('');
+    console.error('💡 请安装或升级 Node.js:');
+    
+    switch(platform) {
+        case 'darwin': // macOS
+            console.error('   macOS: 使用 Homebrew 安装:');
+            console.error('      1. 安装 Homebrew: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"');
+            console.error('      2. 安装 Node.js: brew install node');
+            console.error('   或者访问 https://nodejs.org/ 下载安装程序');
+            break;
+            
+        case 'linux':
+            console.error('   Ubuntu/Debian: sudo apt update && sudo apt install nodejs npm');
+            console.error('   CentOS/RHEL/Fedora: sudo yum install nodejs npm  或  sudo dnf install nodejs npm');
+            console.error('   Arch Linux: sudo pacman -S nodejs npm');
+            console.error('   或者使用 NodeSource 仓库获取最新版本: https://github.com/nodesource/distributions');
+            break;
+            
+        case 'win32': // Windows
+            console.error('   Windows: 访问 https://nodejs.org/ 下载并运行安装程序');
+            console.error('   或者使用 Chocolatey: choco install nodejs');
+            console.error('   或者使用 Scoop: scoop install nodejs');
+            break;
+            
+        default:
+            console.error(`   请访问 https://nodejs.org/ 下载适用于您的系统的安装程序`);
+    }
+    
+    console.error('');
+    console.error('   推荐安装 LTS (长期支持) 版本以获得最佳兼容性和稳定性');
+    process.exit(1);
 }
 
 // 检查Node.js是否可用
 try {
     checkNodeVersion();
 } catch (e) {
-    // 如果semver模块不可用，尝试简单的版本比较
-    const versionMatch = process.version.match(/^v(\d+)\.(\d+)\.(\d+)/);
-    if (versionMatch) {
-        const major = parseInt(versionMatch[1], 10);
-        if (major < 14) {
-            console.error(`❌ 错误: JSPrettify 需要 Node.js 版本 >= 14.0.0`);
-            console.error(`❌ 当前版本: ${process.version}`);
-            console.error('');
-            console.error('💡 请安装或升级 Node.js:');
-            console.error('   macOS: brew install node 或访问 https://nodejs.org/');
-            console.error('   Ubuntu/Debian: sudo apt install nodejs npm');
-            console.error('   CentOS/RHEL: sudo yum install nodejs npm');
-            console.error('   Windows: 访问 https://nodejs.org/ 下载安装程序');
-            console.error('');
-            console.error('   推荐安装 LTS (长期支持) 版本');
-            process.exit(1);
-        }
-    }
+    // 如果发生任何错误，也显示安装说明
+    showNodeInstallationInstructions(0);
 }
 
 const fs = require('fs');
