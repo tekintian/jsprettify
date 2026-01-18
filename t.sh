@@ -1,7 +1,13 @@
 #!/bin/bash
-
-# rm -rf node_modules/ package-lock.json
-# npm i
+# 测试脚本
+# 当前已测试版本 v16.20.2  v20.20.0
+# 测试环境：macOS 12.2.1
+# 测试结果：通过
+# 最低支持版本 v16.0.0 非这以上版本业务功能可能无法正常运行
+# 
+# 清理和安装依赖
+rm -rf node_modules/ package-lock.json
+npm i
 
 echo "🔨 Starting Build JSPrettify..."
 

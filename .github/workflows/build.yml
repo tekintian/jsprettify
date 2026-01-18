@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        node-version: [14.x, 20.x]  # 只测试最低支持版本和最新稳定版
+        node-version: [16.x, 20.x]  # 只测试最低支持版本和最新稳定版
 
     steps:
     - uses: actions/checkout@v4

@@ -116,8 +116,8 @@ fi
 version_match=$(echo "$node_version" | sed -E 's/v([0-9]+)\.([0-9]+)\.([0-9]+)/\1/')
 major_version=${version_match:-0}
 
-if [ "$major_version" -lt 14 ]; then
-    echo "❌ 错误: JSPrettify 需要 Node.js 版本 >= 14.0.0"
+if [ "$major_version" -lt 16 ]; then
+    echo "❌ 错误: JSPrettify 需要 Node.js 版本 >= 16.0.0"
     echo "❌ 当前版本: $node_version"
     echo ""
     echo "💡 请安装或升级 Node.js:"

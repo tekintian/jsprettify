@@ -1,5 +1,7 @@
 #!/usr/bin/env node
-
+// JsPrettify 主程序
+// Author: tekintian@gmail.com (https://dev.tekin.cn)
+// License: MIT
 // 获取操作系统信息
 const os = require('os');
 
@@ -14,14 +16,14 @@ function checkNodeVersion() {
         const versionMatch = process.version.match(/^v(\d+)\.(\d+)\.(\d+)/);
         if (versionMatch) {
             const major = parseInt(versionMatch[1], 10);
-            if (major < 14) {
+            if (major < 16) {
                 showNodeInstallationInstructions(major);
             }
         }
         return;
     }
     
-    const requiredVersion = '14.0.0';
+    const requiredVersion = '16.0.0';
     
     if (!semver.gte(process.version, requiredVersion)) {
         showNodeInstallationInstructions(parseInt(process.version.match(/^v(\d+)/)[1]));
@@ -31,16 +33,16 @@ function checkNodeVersion() {
 // 显示Node.js安装说明
 function showNodeInstallationInstructions(currentMajorVersion) {
     const platform = os.platform();
-    console.error(`❌ 错误: JSPrettify 需要 Node.js 版本 >= 14.0.0`);
+    console.error(`❌ 错误: JSPrettify 需要 Node.js 版本 >= 16.x`);
     console.error(`❌ 当前版本: ${process.version}`);
     console.error('');
     console.error('💡 请安装或升级 Node.js:');
     
     switch(platform) {
         case 'darwin': // macOS
-            console.error('   macOS: 使用 Homebrew 安装:');
-            console.error('      1. 安装 Homebrew: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"');
-            console.error('      2. 安装 Node.js: brew install node');
+            console.error('   macOS: 使用 Macport (推荐) 或 Homebrew 安装:');
+            console.error('      1. 安装 Macport: https://www.macports.org/install.php');
+            console.error('      2. 安装 Node.js: sudo port install nodejs20');
             console.error('   或者访问 https://nodejs.org/ 下载安装程序');
             break;
             
@@ -52,17 +54,17 @@ function showNodeInstallationInstructions(currentMajorVersion) {
             break;
             
         case 'win32': // Windows
-            console.error('   Windows: 访问 https://nodejs.org/ 下载并运行安装程序');
+            console.error('   Windows: 访问 https://nodejs.org/ 下载v16.x以上版本并运行安装程序');
             console.error('   或者使用 Chocolatey: chco install nodejs');
             console.error('   或者使用 Scoop: scoop install nodejs');
             break;
             
         default:
-            console.error(`   请访问 https://nodejs.org/ 下载适用于您的系统的安装程序`);
+            console.error(`   请访问 https://nodejs.org/ 下载适用于您的系统的v16.x以上版本安装程序`);
     }
     
     console.error('');
-    console.error('   推荐安装 LTS (长期支持) 版本以获得最佳兼容性和稳定性');
+    console.error('   推荐安装 v16.x以上 LTS (长期支持) 版本以获得最佳兼容性和稳定性');
     process.exit(1);
 }
 
@@ -112,8 +114,7 @@ async function main() {
         console.log('Usage: jsprettify <input.js> [output.js]');
         console.log('');
         console.log('Examples:');
-        console.log('  jsprettify test.min.js bg_prettified.js');
-        console.log('  jsprettify ct.min.js ct_prettified.js');
+        console.log('  jsprettify test.min.js test_prettified.js');
         process.exit(1);
     }
 

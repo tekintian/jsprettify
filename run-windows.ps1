@@ -85,8 +85,8 @@ function Check-Node {
     $versionMatch = $nodeVersion -match 'v(\d+)\.(\d+)\.(\d+)'
     if ($versionMatch) {
         $major = [int]$matches[1]
-        if ($major -lt 14) {
-            Write-Host "❌ 错误: JSPrettify 需要 Node.js 版本 >= 14.0.0" -ForegroundColor Red
+        if ($major -lt 16) {
+            Write-Host "❌ 错误: JSPrettify 需要 Node.js 版本 >= 16.0.0" -ForegroundColor Red
             Write-Host "❌ 当前版本: $nodeVersion" -ForegroundColor Red
             Write-Host ""
             Write-Host "💡 请安装或升级 Node.js:" -ForegroundColor Yellow

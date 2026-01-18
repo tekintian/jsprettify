@@ -1,5 +1,7 @@
 #!/bin/bash
-
+# Build script for JSPrettify
+# Author: tekintian@gmail.com (https://dev.tekin.cn)
+# 
 # Clean previous build and test output
 rm -rf dist/ test_output.js
 
@@ -14,7 +16,7 @@ cp run-windows.ps1 dist/
 # Make the PowerShell script executable
 chmod +x dist/run-windows.ps1
 
-# 确保生成的文件有执行权限 (仅限Unix系统)
+# make the executable file in dist/ directory executable (Unix and macOS)
 if [[ "$OSTYPE" == "linux-gnu"* || "$OSTYPE" == "darwin"* ]]; then
     # Make the executable file in dist/ directory executable
     chmod +x dist/jsprettify
