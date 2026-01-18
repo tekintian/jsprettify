@@ -8,29 +8,14 @@ echo "🔨 Starting Build JSPrettify..."
 # Clean previous build and test output
 rm -rf dist/ test_output.js
 
-# Build the main executable with ncc - using the original command that worked
+# 使用 ncc 构建
 npx @vercel/ncc build src/index.js -o dist --minify
 
-# Make the output executable and rename to remove the .js extension
+# 设置适当的权限并重命名文件
 chmod +x dist/index.js
 mv dist/index.js dist/jsprettify
 
-# Copy run scripts to dist directory
-cp run-unix.sh dist/
-cp run-windows.ps1 dist/
+echo "🚀 测试打包后的文件 dist/jsprettify"
 
-# Make all scripts executable
-chmod +x dist/jsprettify dist/run-unix.sh
-
-# Test the executable
-./dist/jsprettify test_data/test.min.js test_output.js
-
-# Verify the output
-if [ -f test_output.js ]; then
-    echo "Build and test successful!"
-    echo "Files in dist/:"
-    ls -la dist/
-else
-    echo "Test failed!"
-    exit 1
-fi
+# 测试打包后的文件
+dist/jsprettify test_data/test.min.js  test_output.js

@@ -53,7 +53,7 @@ function showNodeInstallationInstructions(currentMajorVersion) {
             
         case 'win32': // Windows
             console.error('   Windows: 访问 https://nodejs.org/ 下载并运行安装程序');
-            console.error('   或者使用 Chocolatey: choco install nodejs');
+            console.error('   或者使用 Chocolatey: chco install nodejs');
             console.error('   或者使用 Scoop: scoop install nodejs');
             break;
             
@@ -109,11 +109,11 @@ async function main() {
     const args = process.argv.slice(2);
 
     if (args.length < 1) {
-        console.log('Usage: node src/index.js <input.js> [output.js]');
+        console.log('Usage: jsprettify <input.js> [output.js]');
         console.log('');
         console.log('Examples:');
-        console.log('  node src/index.js test.min.js bg_prettified.js');
-        console.log('  node src/index.js ct.min.js ct_prettified.js');
+        console.log('  jsprettify test.min.js bg_prettified.js');
+        console.log('  jsprettify ct.min.js ct_prettified.js');
         process.exit(1);
     }
 
