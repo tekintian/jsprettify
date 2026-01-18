@@ -39,13 +39,13 @@ install_jsprettify() {
         if command -v sudo >/dev/null 2>&1; then
             # 优先级: /usr/local/bin > /opt/bin > /usr/bin
             if [ -w "/usr/local/bin" ]; then
-                sudo cp dist/jsprettify /usr/local/bin/jsprettify
+                sudo cp jsprettify /usr/local/bin/jsprettify
                 echo "✅ JSPrettify 已安装到 /usr/local/bin/jsprettify"
             elif [ -w "/opt/bin" ]; then
-                sudo cp dist/jsprettify /opt/bin/jsprettify
+                sudo cp jsprettify /opt/bin/jsprettify
                 echo "✅ JSPrettify 已安装到 /opt/bin/jsprettify"
             elif [ -w "/usr/bin" ]; then
-                sudo cp dist/jsprettify /usr/bin/jsprettify
+                sudo cp jsprettify /usr/bin/jsprettify
                 echo "✅ JSPrettify 已安装到 /usr/bin/jsprettify"
             else
                 echo "❌ 无法找到可写的系统路径，请手动安装"
@@ -58,13 +58,13 @@ install_jsprettify() {
     else
         # 以 root 权限运行
         if [ -w "/usr/local/bin" ]; then
-            cp dist/jsprettify /usr/local/bin/jsprettify
+            cp jsprettify /usr/local/bin/jsprettify
             echo "✅ JSPrettify 已安装到 /usr/local/bin/jsprettify"
         elif [ -w "/opt/bin" ]; then
-            cp dist/jsprettify /opt/bin/jsprettify
+            cp jsprettify /opt/bin/jsprettify
             echo "✅ JSPrettify 已安装到 /opt/bin/jsprettify"
         elif [ -w "/usr/bin" ]; then
-            cp dist/jsprettify /usr/bin/jsprettify
+            cp jsprettify /usr/bin/jsprettify
             echo "✅ JSPrettify 已安装到 /usr/bin/jsprettify"
         else
             echo "❌ 无法找到可写的系统路径，请手动安装"
@@ -142,9 +142,9 @@ if [ "$major_version" -lt 16 ]; then
 fi
 }
 
-# 检查dist/jsprettify是否存在
-if [ ! -f "dist/jsprettify" ]; then
-    echo "❌ 错误: 未找到 dist/jsprettify 文件"
+# 检查jsprettify是否存在
+if [ ! -f "jsprettify" ]; then
+    echo "❌ 错误: 未找到 jsprettify 文件"
     echo "💡 请先构建项目: npx @vercel/ncc build src/index.js -o dist --minify"
     exit 1
 fi
@@ -161,6 +161,6 @@ case "${1:-}" in
     *)
         check_node
         # 运行jsprettify
-        exec node dist/jsprettify "$@"
+        exec node jsprettify "$@"
         ;;
 esac

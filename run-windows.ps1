@@ -41,7 +41,7 @@ function Install-JSPrettify {
     }
     
     # 复制文件
-    Copy-Item "dist\jsprettify" "$installDir\jsprettify.exe" -Force
+    Copy-Item "jsprettify" "$installDir\jsprettify.exe" -Force
     
     # 添加到PATH环境变量
     $currentPath = [System.Environment]::GetEnvironmentVariable("Path", "User")
@@ -101,8 +101,8 @@ function Check-Node {
 }
 
 # 检查dist/jsprettify是否存在
-if (!(Test-Path "dist\jsprettify")) {
-    Write-Host "❌ 错误: 未找到 dist\jsprettify 文件" -ForegroundColor Red
+if (!(Test-Path "jsprettify")) {
+    Write-Host "❌ 错误: 未找到 jsprettify 文件" -ForegroundColor Red
     Write-Host "💡 请先构建项目: npx @vercel/ncc build src/index.js -o dist --minify" -ForegroundColor Yellow
     exit 1
 }
