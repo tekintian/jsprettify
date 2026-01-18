@@ -1,27 +1,38 @@
 {
   "name": "jsprettify",
-  "version": "1.0.0",
+  "version": "1.0.0-ncc",
   "description": "Prettify and decompress your JavaScript code with jsprettify",
-  "main": "src/index.js",
+  "main": "dist/jsprettify",
   "bin": {
-    "jsprettify": "./src/index.js"
+    "jsprettify": "./dist/jsprettify"
+  },
+  "engines": {
+    "node": ">=14.0.0"
   },
   "scripts": {
     "prettify": "node src/index.js",
-    "build": "pkg ./src/index.js --targets node18-macos-x64 --output dist/jsprettify",
-    "build:all": "bash build.sh"
+    "clean": "rm -rf dist",
+    "build": "npm run clean && npx @vercel/ncc build src/index.js -o dist --minify && chmod +x dist/index.js && mv dist/index.js dist/jsprettify"
   },
   "dependencies": {
-    "prettier": "^2.8.8"
+    "prettier": "^3.8.0",
+    "semver": "^7.3.5"
   },
   "devDependencies": {
-    "pkg": "^5.8.1"
+    "@vercel/ncc": "^0.38.4"
   },
-  "pkg": {
-    "outputPath": "dist",
-    "assets": [
-      "node_modules/prettier/**/*"
-    ]
-  }
-  
+  "keywords": [
+    "javascript",
+    "formatter",
+    "prettify",
+    "beautifier"
+  ],
+  "author": "tekintian@gmail.com (https://dev.tekin.cn)",
+  "gitRepository": "https://github.com/tekintian/jsprettify",
+  "license": "ISC",
+  "files": [
+    "dist/",
+    "run-unix.sh",
+    "run-windows.ps1"
+  ]
 }

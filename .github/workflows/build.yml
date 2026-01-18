@@ -2,182 +2,84 @@ name: Build and Release
 
 on:
   push:
-    branches:
-      - main
     tags:
-      - 'v*'
-  workflow_dispatch:
-    inputs:
-      create_release:
-        description: 'Create GitHub Release'
-        required: true
-        default: true
-        type: boolean
+      - 'v*'  # 触发标签推送时触发，如 v1.0, v2.0 等
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
-  build:
+  test:
+    runs-on: ${{ matrix.os }}
+    
     strategy:
       matrix:
-        include:
-          # macOS ARM64 (Apple Silicon M1/M2/M3)
-          - os: macos-15
-            platform: macos-arm64
-            target: node18-macos-arm64
-            ext: ''
-            arch: arm64
-          # macOS x64 (Intel)
-          - os: macos-15-intel
-            platform: macos-x64
-            target: node18-macos-x64
-            ext: ''
-            arch: x64
-          # Linux x64
-          - os: ubuntu-latest
-            platform: linux-x64
-            target: node18-linux-x64
-            ext: ''
-            arch: x64
-          # Windows x64
-          - os: windows-latest
-            platform: win-x64
-            target: node18-win-x64
-            ext: '.exe'
-            arch: x64
-
-    runs-on: ${{ matrix.os }}
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node-version: [14.x, 20.x]  # 只测试最低支持版本和最新稳定版
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
 
-      - name: Install dependencies
-        run: npm install
+    - name: Install dependencies
+      run: npm ci
 
-      - name: Install pkg
-        run: npm install -g pkg
+    - name: Run build
+      run: ./build.sh
 
-      - name: Show system architecture
-        run: |
-          echo "OS: ${{ matrix.os }}"
-          echo "Platform: ${{ matrix.platform }}"
-          echo "Target: ${{ matrix.target }}"
-          echo "Architecture: ${{ matrix.arch }}"
-          uname -m
+    - name: Test executable (Unix/Mac)
+      if: runner.os != 'Windows'
+      run: |
+        chmod +x dist/jsprettify
+        node dist/jsprettify test_data/test.min.js test_output.js
+        [ -f test_output.js ] && echo "Build successful" || exit 1
 
-      - name: Build jsprettify
-        shell: bash
-        run: pkg src/index.js --public --publicPackages '*' --targets ${{ matrix.target }} --output dist/jsprettify-${{ matrix.platform }}${{ matrix.ext }}
-
-      - name: Make executables executable (Unix)
-        if: matrix.os != 'windows-latest'
-        run: chmod +x dist/*
-
-      - name: Display built files
-        shell: bash
-        run: ls -lh dist/
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: jsprettify-${{ matrix.platform }}
-          path: dist/jsprettify-${{ matrix.platform }}${{ matrix.ext }}
-          retention-days: 7
+    - name: Test executable (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        node dist/jsprettify test_data/test.min.js test_output.js
+        if (Test-Path test_output.js) { echo "Build successful" } else { exit 1 }
 
   release:
-    needs: build
+    needs: test
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v') || github.event.inputs.create_release == 'true'
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
 
-      - name: Display structure of downloaded files
-        run: ls -R artifacts
+    - name: Install dependencies
+      run: npm ci
 
-      - name: Create release directory
-        run: |
-          mkdir -p release
-          cp artifacts/*/* release/
-          echo "Files copied to release directory:"
-          ls -la release/
+    - name: Run build
+      run: ./build.sh
 
-      - name: Create checksums
-        run: |
-          cd release
-          if command -v md5sum &> /dev/null; then
-            md5sum * > checksums.txt
-          elif command -v md5 &> /dev/null; then
-            md5 -r * > checksums.txt
-          fi
-          if command -v sha256sum &> /dev/null; then
-            sha256sum * > sha256sums.txt
-          elif command -v shasum &> /dev/null; then
-            shasum -a 256 * > sha256sums.txt
-          fi
+    - name: Prepare assets for release
+      run: |
+        chmod +x dist/jsprettify dist/run-unix.sh
+        # Create a zip archive with all necessary files
+        zip -r jsprettify-${{ github.ref_name }}.zip dist/jsprettify dist/run-unix.sh dist/run-windows.ps1 README.md package.json
 
-      - name: Create archives
-        run: |
-          cd release
-          # Process each file individually to avoid errors if files don't exist
-          for file in jsprettify-*; do
-            [ -f "$file" ] || continue  # Skip if not a regular file
-            if [[ "$file" == *.exe ]]; then
-              # Windows executable - create zip
-              zip -r "${file%.exe}.zip" "$file"
-            else
-              # Unix executable - create tar.gz
-              tar -czf "${file}.tar.gz" "$file"
-            fi
-          done
-          
-          echo "Created archives:"
-          ls -la *.tar.gz *.zip 2>/dev/null || echo "No archives created"
-
-      - name: Get version
-        id: get_version
-        run: |
-          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
-            VERSION=${GITHUB_REF#refs/tags/}
-          else
-            VERSION=$(date +%Y%m%d-%H%M%S)
-          fi
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          tag_name: ${{ steps.get_version.outputs.version }}
-          name: Release ${{ steps.get_version.outputs.version }}
-          draft: false
-          prerelease: false
-          generate_release_notes: true
-          fail_on_unmatched_files: false
-          files: release/**
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Release summary
-        run: |
-          echo "## 📦 Release Artifacts" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| File | Size |" >> $GITHUB_STEP_SUMMARY
-          echo "|------|------|" >> $GITHUB_STEP_SUMMARY
-          cd release
-          for file in jsprettify-*.tar.gz jsprettify-*.zip jsprettify-* checksums.txt sha256sums.txt; do
-            if [ -f "$file" ]; then
-              size=$(ls -lh "$file" | awk '{print $5}')
-              echo "| $file | $size |" >> $GITHUB_STEP_SUMMARY
-            fi
-          done
+    - name: Create Release
+      id: create_release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ github.ref_name }}
+        release_name: Release ${{ github.ref_name }}
+        draft: false
+        prerelease: false
+        generate_release_notes: true
+        files: |
+          dist/jsprettify
+          dist/run-unix.sh
+          dist/run-windows.ps1
+          jsprettify-${{ github.ref_name }}.zip
