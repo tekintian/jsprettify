@@ -101,7 +101,10 @@ function Check-Node {
 }
 
 # 检查dist/jsprettify是否存在
-if (!(Test-Path "jsprettify")) {
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$jsprettifyPath = Join-Path $scriptDir "jsprettify"
+
+if (!(Test-Path $jsprettifyPath)) {
     Write-Host "❌ 错误: 未找到 jsprettify 文件" -ForegroundColor Red
     Write-Host "💡 请先构建项目: npx @vercel/ncc build src/index.js -o dist --minify" -ForegroundColor Yellow
     exit 1
@@ -117,6 +120,17 @@ if ($Help) {
     Show-Help
 } else {
     Check-Node
-    # 运行jsprettify
-    node dist/jsprettify @Arguments
+    # 运行jsprettify，处理shebang问题
+    $content = Get-Content $jsprettifyPath -Raw
+    $cleanContent = $content -replace "^#![^\r\n]*\r?\n?", ""
+    $tempFile = Join-Path $env:TEMP "jsprettify_temp_$([Guid]::NewGuid()).js"
+    Set-Content -Path $tempFile -Value $cleanContent -Encoding UTF8
+    
+    try {
+        node $tempFile @Arguments
+    } finally {
+        if (Test-Path $tempFile) {
+            Remove-Item $tempFile
+        }
+    }
 }
