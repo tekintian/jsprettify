@@ -28,8 +28,32 @@ jobs:
     - name: Install dependencies
       run: npm ci
 
-    - name: Run build
+    - name: Run build (Unix/Mac)
+      if: runner.os != 'Windows'
       run: ./build.sh
+
+    - name: Run build (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        # Clean previous build and test output
+        if (Test-Path dist) {
+          Remove-Item dist -Recurse -Force
+        }
+        if (Test-Path output.js) {
+          Remove-Item output.js -Force
+        }
+
+        # Build the main executable with ncc
+        npx @vercel/ncc build src/index.js -o dist --minify
+
+        # Rename the output to remove the .js extension
+        Move-Item dist/index.js dist/jsprettify
+
+        # Copy run scripts to dist directory
+        Copy-Item run-windows.ps1 dist/
+
+        Write-Host "Build completed successfully!"
+        Get-ChildItem dist/
 
     - name: Test executable (Unix/Mac)
       if: runner.os != 'Windows'
@@ -38,21 +62,21 @@ jobs:
         ./dist/jsprettify test_data/test.min.js output.js
         [ -f output.js ] && echo "Build successful" || exit 1
 
-    - name: Test executable (Windows)  
+    - name: Test executable (Windows)
       if: runner.os == 'Windows'
       run: |
         # 在 Windows 上，我们使用 node 直接运行编译后的文件
-        # 如果文件存在且可读，就尝试运行它
-        Get-ChildItem dist/
+        # 检查文件是否存在
         if (Test-Path "dist/jsprettify") {
           Write-Host "jsprettify file exists"
           # 尝试使用 node 运行它
           node dist/jsprettify test_data/test.min.js output.js
-          if ($LASTEXITCODE -eq 0) {
+          $exitCode = $LASTEXITCODE
+          if ($exitCode -eq 0) {
             Write-Host "Command executed successfully"
           } else {
-            Write-Error "Command failed with exit code: $LASTEXITCODE"
-            exit 1
+            Write-Error "Command failed with exit code: $exitCode"
+            exit $exitCode
           }
         } else {
           Write-Error "dist/jsprettify does not exist"
