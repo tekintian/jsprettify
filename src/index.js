@@ -1,5 +1,49 @@
 #!/usr/bin/env node
 
+// 检查Node.js版本
+function checkNodeVersion() {
+    const semver = require('semver');
+    const requiredVersion = '14.0.0';
+    
+    if (!semver.gte(process.version, requiredVersion)) {
+        console.error(`❌ 错误: JSPrettify 需要 Node.js 版本 >= ${requiredVersion}`);
+        console.error(`❌ 当前版本: ${process.version}`);
+        console.error('');
+        console.error('💡 请安装或升级 Node.js:');
+        console.error('   macOS: brew install node 或访问 https://nodejs.org/');
+        console.error('   Ubuntu/Debian: sudo apt install nodejs npm');
+        console.error('   CentOS/RHEL: sudo yum install nodejs npm');
+        console.error('   Windows: 访问 https://nodejs.org/ 下载安装程序');
+        console.error('');
+        console.error('   推荐安装 LTS (长期支持) 版本');
+        process.exit(1);
+    }
+}
+
+// 检查Node.js是否可用
+try {
+    checkNodeVersion();
+} catch (e) {
+    // 如果semver模块不可用，尝试简单的版本比较
+    const versionMatch = process.version.match(/^v(\d+)\.(\d+)\.(\d+)/);
+    if (versionMatch) {
+        const major = parseInt(versionMatch[1], 10);
+        if (major < 14) {
+            console.error(`❌ 错误: JSPrettify 需要 Node.js 版本 >= 14.0.0`);
+            console.error(`❌ 当前版本: ${process.version}`);
+            console.error('');
+            console.error('💡 请安装或升级 Node.js:');
+            console.error('   macOS: brew install node 或访问 https://nodejs.org/');
+            console.error('   Ubuntu/Debian: sudo apt install nodejs npm');
+            console.error('   CentOS/RHEL: sudo yum install nodejs npm');
+            console.error('   Windows: 访问 https://nodejs.org/ 下载安装程序');
+            console.error('');
+            console.error('   推荐安装 LTS (长期支持) 版本');
+            process.exit(1);
+        }
+    }
+}
+
 const fs = require('fs');
 const path = require('path');
 
