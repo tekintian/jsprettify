@@ -3,7 +3,7 @@
 # Author: tekintian@gmail.com (https://dev.tekin.cn)
 # 
 # Clean previous build and test output
-rm -rf dist/ test_output.js
+rm -rf dist/ output.js
 
 # Build the main executable with ncc
 npx @vercel/ncc build src/index.js -o dist --minify

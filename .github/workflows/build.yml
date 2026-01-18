@@ -35,14 +35,14 @@ jobs:
       if: runner.os != 'Windows'
       run: |
         chmod +x dist/jsprettify
-        node dist/jsprettify test_data/test.min.js test_output.js
-        [ -f test_output.js ] && echo "Build successful" || exit 1
+        node dist/jsprettify test_data/test.min.js output.js
+        [ -f output.js ] && echo "Build successful" || exit 1
 
     - name: Test executable (Windows)
       if: runner.os == 'Windows'
       run: |
-        node dist/jsprettify test_data/test.min.js test_output.js
-        if (Test-Path test_output.js) { echo "Build successful" } else { exit 1 }
+        node dist/jsprettify test_data/test.min.js output.js
+        if (Test-Path output.js) { echo "Build successful" } else { exit 1 }
 
   release:
     needs: test

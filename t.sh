@@ -12,9 +12,9 @@ npm i
 echo "🔨 Starting Build JSPrettify..."
 
 # Clean previous build and test output
-rm -rf dist/ test_output.js
+rm -rf dist/ output.js
 
-# 使用 ncc 构建
+# 使用 ncc 构建主可执行文件
 npx @vercel/ncc build src/index.js -o dist --minify
 
 # 设置适当的权限并重命名文件
@@ -24,4 +24,4 @@ mv dist/index.js dist/jsprettify
 echo "🚀 测试打包后的文件 dist/jsprettify"
 
 # 测试打包后的文件
-dist/jsprettify test_data/test.min.js  test_output.js
+dist/jsprettify test_data/test.min.js  output.js
