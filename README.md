@@ -37,6 +37,21 @@ This project provides three different branches, each using different packaging t
 - **Features**: Creates single executable files using Node.js native features with better performance
 - **Use Case**: Ideal for users pursuing ultimate performance and native experience
 
+### Packaging Method Comparison
+
+| Feature | ncc (main branch) | pkg (pkg branch) | SEA (sea branch) |
+|--------|------------------|------------------|------------------|
+| **Executable Size** | Small (~20-30 MB) | Large (~50-70 MB) | Medium (~30-40 MB) |
+| **Node.js Version Required** | >= 16.0.0 at runtime | Not required (built-in) | >= 20.0.0 at runtime |
+| **Execution Efficiency** | Fast startup | Moderate startup | Fastest startup |
+| **Platform Independence** | Requires Node.js | Fully independent | Requires Node.js 20+ |
+| **Deployment Complexity** | Requires Node.js setup | Simple copy and run | Requires Node.js 20+ setup |
+| **Bundle Speed** | Fast | Moderate | Slowest |
+| **Memory Usage** | Low | High | Medium |
+| **Security** | Standard | High (self-contained) | High (native) |
+| **Maintenance** | Moderate | Easy | Moderate |
+| **Best Use Case** | Module/library usage | End-user distribution | Performance-critical apps |
+
 ## 📦 Installation
 
 ### Method 1: Using npm (for main branch)
