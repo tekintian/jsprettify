@@ -1,6 +1,6 @@
 {
   "name": "jsprettify",
-  "version": "1.0.0-ncc",
+  "version": "3.0.0",
   "description": "Prettify and decompress your JavaScript code with jsprettify",
   "main": "dist/jsprettify",
   "bin": {
