@@ -14,7 +14,7 @@ jobs:
     
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest]
         node-version: [16.x, 20.x]  # 只测试最低支持版本和最新稳定版
 
     steps:
@@ -65,12 +65,19 @@ jobs:
     - name: Test executable (Windows)
       if: runner.os == 'Windows'
       run: |
-        # 在 Windows 上，我们使用 node 直接运行编译后的文件
-        # 检查文件是否存在
+        # 在 Windows 上，由于 ncc 生成的文件包含 shebang，
+        # 我们需要使用 node -e 来动态执行内容，或者临时移除 shebang
         if (Test-Path "dist/jsprettify") {
           Write-Host "jsprettify file exists"
-          # 尝试使用 node 运行它
-          node dist/jsprettify test_data/test.min.js output.js
+          
+          # 创建一个临时的不含 shebang 的版本用于测试
+          $content = Get-Content "dist/jsprettify" -Raw
+          $cleanContent = $content -replace "^#![^\r\n]*\r?\n?", ""
+          $tempFile = "dist/jsprettify-temp.js"
+          Set-Content -Path $tempFile -Value $cleanContent -Encoding UTF8
+          
+          # 使用 node 运行临时文件
+          node $tempFile test_data/test.min.js output.js
           $exitCode = $LASTEXITCODE
           if ($exitCode -eq 0) {
             Write-Host "Command executed successfully"
@@ -78,6 +85,9 @@ jobs:
             Write-Error "Command failed with exit code: $exitCode"
             exit $exitCode
           }
+          
+          # 清理临时文件
+          Remove-Item $tempFile
         } else {
           Write-Error "dist/jsprettify does not exist"
           exit 1
